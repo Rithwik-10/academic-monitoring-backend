@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Academic Monitoring & Intervention System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body id="appBody">
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p>Loading dashboard...</p>
+    </div>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div id="sidebarOverlay" class="sidebar-overlay hidden"></div>
+    <aside id="navSidebar" class="nav-sidebar">
+        <div class="nav-sidebar-head">
+            <span class="brand-mark small-mark">AMS</span>
+            <div>
+                <p class="nav-title">Control Panel</p>
+                <p class="nav-subtitle">Navigation & preferences</p>
+            </div>
+        </div>
+        <div class="nav-sidebar-links">
+            <a class="sidebar-link" href="#aiWorkspace">AI Workspace</a>
+            <a class="sidebar-link" href="#aiInsightsPanel">AI Insights</a>
+            <a class="sidebar-link" href="#recordForm">Manage Records</a>
+            <a class="sidebar-link" href="#recordsTableBody">Academic Table</a>
+            <button id="sidebarExportBtn" class="sidebar-action" type="button">Export CSV</button>
+            <button id="sidebarInsightsBtn" class="sidebar-action" type="button">Open Insights</button>
+            <label class="settings-option">
+                <span>Theme</span>
+                <select id="themeSelect">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+            </label>
+            <button id="logoutBtn" class="sidebar-action danger-action" type="button">Logout</button>
+        </div>
+    </aside>
+
+    <aside id="insightSidebar" class="insight-sidebar">
+        <div class="sidebar-header">
+            <div>
+                <p class="eyebrow sidebar-eyebrow">Insights</p>
+                <h2>Student Analytics</h2>
+            </div>
+            <button id="closeSidebarBtn" class="icon-btn" type="button" aria-label="Close sidebar">x</button>
+        </div>
+
+        <section class="sidebar-section">
+            <div class="sidebar-section-head">
+                <h3>Status Distribution</h3>
+                <span id="statusSummaryText" class="chart-caption">Waiting for records</span>
+            </div>
+            <div class="chart-card">
+                <canvas id="statusPieChart" width="320" height="240"></canvas>
+                <div id="statusLegend" class="chart-legend"></div>
+            </div>
+        </section>
+
+        <section class="sidebar-section">
+            <div class="sidebar-section-head">
+                <h3>Student vs Cohort</h3>
+                <span class="chart-caption">AHI comparison against overall average</span>
+            </div>
+            <label class="sidebar-label" for="comparisonStudentSelect">Choose Student</label>
+            <select id="comparisonStudentSelect"></select>
+            <div class="chart-card">
+                <canvas id="comparisonBarChart" width="320" height="240"></canvas>
+            </div>
+        </section>
+
+        <section class="sidebar-section">
+            <div class="sidebar-section-head">
+                <h3>Top 10 Worst AHI</h3>
+                <span class="chart-caption">Lowest performing students first</span>
+            </div>
+            <div class="chart-card">
+                <canvas id="worstStudentsChart" width="320" height="260"></canvas>
+            </div>
+        </section>
+
+        <section class="sidebar-section">
+            <div class="sidebar-section-head">
+                <h3>Trend Analytics</h3>
+                <span class="chart-caption">AHI history for the selected student</span>
+            </div>
+            <div class="chart-card">
+                <canvas id="trendLineChart" width="320" height="220"></canvas>
+            </div>
+        </section>
+
+        <section class="sidebar-section">
+            <div class="sidebar-section-head">
+                <h3>Recent Alerts</h3>
+                <span class="chart-caption">Auto-generated risk notifications</span>
+            </div>
+            <div id="alertsList" class="alerts-list"></div>
+        </section>
+    </aside>
+
+    <div class="page-shell">
+        <nav class="top-nav">
+            <div class="brand-lockup">
+                <button id="sidebarToggleBtn" class="menu-toggle" type="button" aria-label="Open navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <span class="brand-mark">AMS</span>
+                <div>
+                    <p class="nav-title">Smart Academic Monitoring & Intervention System</p>
+                    <p class="nav-subtitle">Monitoring, intervention, prediction, and student insight</p>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <span id="authStatus" class="auth-status"></span>
+                <a class="secondary-btn nav-link-btn" href="#aiWorkspace">AI Workspace</a>
+                <button id="openSidebarBtn" class="primary-btn nav-chart-btn" type="button">Open Insights</button>
+            </div>
+        </nav>
+
+        <header class="hero">
+            <div class="hero-copy">
+                <p class="eyebrow">Smart Academic Monitoring & Intervention System</p>
+                <h1>Track performance, surface risk early, and act with confidence.</h1>
+                <p class="hero-text">
+                    A professional academic command center for monitoring student performance,
+                    intervention readiness, cohort safety, and comparative outcomes in one place.
+                </p>
+                <div class="hero-callouts">
+                    <div class="hero-chip">Live Cohort Monitoring</div>
+                    <div class="hero-chip">Predictive Risk Flags</div>
+                    <div class="hero-chip">Intervention Workflow</div>
+                    <a class="hero-chip hero-link-chip" href="#aiWorkspace">Open AI Workspace</a>
+                </div>
+                <section class="hero-graph-panel">
+                    <div class="panel-head compact-head">
+                        <div>
+                            <h2>Cohort Safety Overview</h2>
+                            <p>Total students, safe students, and students needing attention.</p>
+                        </div>
+                    </div>
+                    <div class="chart-card hero-chart-card">
+                        <canvas id="cohortSafetyChart" width="680" height="250"></canvas>
+                    </div>
+                </section>
+            </div>
+            <div class="hero-stats">
+                <section class="stat-card accent">
+                    <span class="stat-label">Average AHI</span>
+                    <strong id="averageAhiValue">0.00</strong>
+                    <span class="stat-foot">Live from <code>/api/records/average-ahi</code></span>
+                </section>
+                <section class="stat-card">
+                    <span class="stat-label">Total Students</span>
+                    <strong id="studentCountValue">0</strong>
+                    <span class="stat-foot">Loaded from <code>/api/students</code></span>
+                </section>
+                <section class="stat-card">
+                    <span class="stat-label">Total Records</span>
+                    <strong id="recordCountValue">0</strong>
+                    <span class="stat-foot">Updated after every action</span>
+                </section>
+                <section class="stat-card">
+                    <span class="stat-label">% At Risk</span>
+                    <strong id="atRiskPercentageValue">0%</strong>
+                    <span class="stat-foot">Share of students needing attention</span>
+                </section>
+                <section class="stat-card">
+                    <span class="stat-label">Avg Attendance</span>
+                    <strong id="avgAttendanceValue">0.00</strong>
+                    <span class="stat-foot">Current cohort attendance average</span>
+                </section>
+                <section class="stat-card">
+                    <span class="stat-label">Low Average</span>
+                    <strong id="lowAverageValue">0</strong>
+                    <span class="stat-foot" id="lowAverageText">Students below AHI 50</span>
+                </section>
+                <section class="stat-card">
+                    <span class="stat-label">Good Average</span>
+                    <strong id="goodAverageValue">0</strong>
+                    <span class="stat-foot" id="goodAverageText">Students between AHI 50 and 74.99</span>
+                </section>
+                <section class="stat-card">
+                    <span class="stat-label">High Achievers</span>
+                    <strong id="highAchieversValue">0</strong>
+                    <span class="stat-foot" id="highAchieversText">Students with AHI 75+</span>
+                </section>
+            </div>
+        </header>
+
+        <main class="dashboard-grid">
+            <section id="aiWorkspace" class="panel full-width ai-workspace-panel">
+                <div class="panel-head panel-head-rich">
+                    <div>
+                        <p class="section-kicker">AI Command Center</p>
+                    <h2>AI Student Analysis</h2>
+                    <p class="panel-subtitle">Generate a summary, confidence score, structured reasons, recommendations, and prediction for one student.</p>
+                    </div>
+                    <div class="workspace-chip-row">
+                        <span class="workspace-chip">Confidence Scoring</span>
+                        <span class="workspace-chip">Rule-Based Prediction</span>
+                        <span class="workspace-chip">Live AI Assistant</span>
+                    </div>
+                </div>
+                <div class="tool-card ai-control-card spotlight-card">
+                    <div class="inline-form ai-command-bar">
+                        <select id="aiStudentSelect">
+                            <option value="">Select a student</option>
+                        </select>
+                        <button id="analyzeAiBtn" class="primary-btn" type="button">Analyze</button>
+                        <button id="predictAiBtn" class="secondary-btn" type="button">Predict</button>
+                    </div>
+                </div>
+                <div class="ai-overview-grid">
+                    <article class="ai-card ai-card-wide summary-card">
+                        <div class="ai-card-head">
+                            <span class="stat-label">AI Summary</span>
+                            <span id="aiCacheStatus" class="inline-badge neutral-badge">Checking Cache</span>
+                        </div>
+                        <p id="aiSummary" class="ai-copy">Choose a student and run analysis to view the AI summary.</p>
+                        <p id="aiSummarySource" class="muted-copy">Saved summaries are reused from the academic record when available.</p>
+                    </article>
+                    <article class="ai-card metric-card">
+                        <span class="stat-label">Confidence</span>
+                        <strong id="aiConfidenceValue" class="metric-value">0.00</strong>
+                        <p class="muted-copy">A score closer to 1.00 means the student profile is more stable.</p>
+                    </article>
+                    <article class="ai-card metric-card">
+                        <span class="stat-label">Risk Level</span>
+                        <div id="aiRiskLevel" class="risk-level-pill neutral">Waiting</div>
+                        <p class="muted-copy">Generated from attendance, marks, assignments, and AHI.</p>
+                    </article>
+                    <article class="ai-card metric-card">
+                        <span class="stat-label">Priority Level</span>
+                        <div id="aiPriorityLevel" class="priority-pill priority-low">LOW</div>
+                        <p class="muted-copy">Operational urgency used by the intervention workflow.</p>
+                    </article>
+                </div>
+                <div class="ai-grid">
+                    <article class="ai-card">
+                        <span class="stat-label">Structured Reasons</span>
+                        <ul id="aiReasons" class="ai-list">
+                            <li>No structured reasons available yet.</li>
+                        </ul>
+                    </article>
+                    <article class="ai-card">
+                        <span class="stat-label">Actionable Recommendations</span>
+                        <ul id="aiRecommendations" class="ai-list">
+                            <li>Recommendations will appear here.</li>
+                        </ul>
+                    </article>
+                    <article class="ai-card prediction-card">
+                        <span class="stat-label">Prediction Engine</span>
+                        <div class="prediction-metrics">
+                            <div>
+                                <strong id="predictionRiskScore">0.00</strong>
+                                <span>Risk Score</span>
+                            </div>
+                            <div>
+                                <strong id="predictionRiskFlag">No</strong>
+                                <span>Predicted Risk</span>
+                            </div>
+                            <div>
+                                <strong id="predictionPriority">LOW</strong>
+                                <span>Priority</span>
+                            </div>
+                        </div>
+                        <p id="predictionMessage" class="ai-copy">Prediction details will appear here.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="panel assistant-panel">
+                <div class="panel-head panel-head-rich">
+                    <div>
+                        <p class="section-kicker">AI Copilot</p>
+                        <h2>AI Assistant</h2>
+                        <p class="panel-subtitle">Ask quick academic questions and review the highest-risk students instantly.</p>
+                    </div>
+                </div>
+                <div class="assistant-layout">
+                    <article class="tool-card assistant-card">
+                        <h3>Chatbot</h3>
+                        <p>Try questions like “Which students are at risk?” or “average ahi”.</p>
+                        <div class="chat-input-wrap">
+                            <textarea id="aiChatQuestion" rows="4" placeholder="Ask the academic assistant a question"></textarea>
+                            <button id="askAiBtn" class="primary-btn" type="button">Ask AI</button>
+                        </div>
+                        <div id="aiChatAnswer" class="chat-answer">The assistant answer will appear here.</div>
+                    </article>
+                    <article class="tool-card top-risk-card">
+                        <div class="assistant-head">
+                            <div>
+                                <h3>Top Risk Students</h3>
+                                <p>Highest risk score students from the rule-based prediction engine.</p>
+                            </div>
+                            <button id="reloadTopRiskBtn" class="secondary-btn" type="button">Reload</button>
+                        </div>
+                        <div id="topRiskList" class="top-risk-list">
+                            <div class="empty-state small-empty">Loading top risk students...</div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="aiInsightsPanel" class="panel full-width insights-panel">
+                <div class="panel-head panel-head-rich">
+                    <div>
+                        <p class="section-kicker">Executive Signals</p>
+                        <h2>AI Insights Snapshot</h2>
+                        <p class="panel-subtitle">Production-ready cohort insights generated from the latest academic records.</p>
+                    </div>
+                </div>
+                <div class="insights-grid">
+                    <article class="tool-card insight-card">
+                        <span class="stat-label">Average AHI</span>
+                        <strong id="insightsAverageAhi" class="metric-value">0.00</strong>
+                        <p>Current overall academic health signal.</p>
+                    </article>
+                    <article class="tool-card insight-card">
+                        <span class="stat-label">At Risk Percentage</span>
+                        <strong id="insightsAtRiskPercentage" class="metric-value">0%</strong>
+                        <p>Share of students currently classified as AT_RISK.</p>
+                    </article>
+                    <article class="tool-card insight-card">
+                        <span class="stat-label">Most Common Issue</span>
+                        <strong id="insightsMostCommonIssue" class="insight-highlight">No common issue detected</strong>
+                        <p>Most frequent academic pain point across the current cohort.</p>
+                    </article>
+                    <article class="tool-card insight-card">
+                        <span class="stat-label">Critical Students</span>
+                        <strong id="insightsCriticalStudents" class="metric-value">0</strong>
+                        <p>Students who currently require intervention handling.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="panel form-panel">
+                <div class="panel-head">
+                    <h2>Manage Record</h2>
+                    <p>Create or update an academic record for any student.</p>
+                </div>
+                <form id="recordForm" class="record-form">
+                    <label>
+                        Action
+                        <select id="formMode" name="mode">
+                            <option value="create">Create Record</option>
+                            <option value="update">Update Record</option>
+                        </select>
+                    </label>
+                    <label>
+                        Student
+                        <select id="studentId" required>
+                            <option value="">Select a student</option>
+                        </select>
+                    </label>
+                    <div class="form-grid">
+                        <label>
+                            Attendance %
+                            <input id="attendancePercentage" type="number" min="0" max="100" step="0.01" required>
+                        </label>
+                        <label>
+                            Internal Marks
+                            <input id="internalMarks" type="number" min="0" max="100" step="0.01" required>
+                        </label>
+                        <label>
+                            Assignments Submitted
+                            <input id="assignmentsSubmitted" type="number" min="0" step="1" required>
+                        </label>
+                        <label>
+                            Total Assignments
+                            <input id="totalAssignments" type="number" min="0" step="1" required>
+                        </label>
+                    </div>
+                    <div class="button-row">
+                        <button type="submit" class="primary-btn">Save Record</button>
+                        <button type="button" id="resetFormBtn" class="secondary-btn">Reset</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="panel search-panel">
+                <div class="panel-head">
+                    <h2>Quick Actions</h2>
+                    <p>Search, filter, and remove records by student or status.</p>
+                </div>
+                <div class="tool-stack">
+                    <div class="tool-card">
+                        <h3>Find By Student ID</h3>
+                        <div class="inline-form">
+                            <input id="lookupStudentId" type="number" min="1" placeholder="Enter student id">
+                            <button id="lookupBtn" class="secondary-btn">Find</button>
+                        </div>
+                    </div>
+                    <div class="tool-card">
+                        <h3>Filter By Status</h3>
+                        <div class="inline-form">
+                            <select id="statusFilter">
+                                <option value="">All statuses</option>
+                                <option value="COMPLIANT">COMPLIANT</option>
+                                <option value="AT_RISK">AT_RISK</option>
+                                <option value="INTERVENTION_REQUIRED">INTERVENTION_REQUIRED</option>
+                            </select>
+                            <button id="filterBtn" class="secondary-btn">Apply</button>
+                        </div>
+                    </div>
+                    <div class="tool-card">
+                        <h3>Search By Name</h3>
+                        <div class="inline-form">
+                            <input id="nameFilter" type="text" placeholder="Enter student name">
+                            <button id="nameSearchBtn" class="secondary-btn">Search</button>
+                        </div>
+                    </div>
+                    <div class="tool-card">
+                        <h3>Advanced Filters</h3>
+                        <div class="form-grid compact-grid">
+                            <label>
+                                Min AHI
+                                <input id="minAhiFilter" type="number" min="0" max="100" step="0.01">
+                            </label>
+                            <label>
+                                Max AHI
+                                <input id="maxAhiFilter" type="number" min="0" max="100" step="0.01">
+                            </label>
+                            <label>
+                                Attendance Below
+                                <input id="attendanceBelowFilter" type="number" min="0" max="100" step="0.01">
+                            </label>
+                            <label>
+                                Internal Below
+                                <input id="internalBelowFilter" type="number" min="0" max="100" step="0.01">
+                            </label>
+                        </div>
+                        <div class="inline-form">
+                            <label class="check-row"><input id="predictedRiskFilter" type="checkbox"> Predicted Risk</label>
+                            <label class="check-row"><input id="interventionFilter" type="checkbox"> Needs Intervention</label>
+                        </div>
+                        <div class="inline-form">
+                            <button id="advancedFilterBtn" class="secondary-btn">Run Filters</button>
+                            <button id="clearFilterBtn" class="secondary-btn">Clear</button>
+                        </div>
+                    </div>
+                    <div class="tool-card danger-card">
+                        <h3>Delete By Student ID</h3>
+                        <div class="inline-form">
+                            <input id="deleteStudentId" type="number" min="1" placeholder="Enter student id">
+                            <button id="deleteBtn" class="danger-btn">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel full-width">
+                <div class="panel-head table-head">
+                    <div>
+                        <h2>Academic Records</h2>
+                        <p>AHI and status are calculated automatically from attendance, marks, and assignments.</p>
+                        <div class="ahi-legend">
+                            <span><i class="legend-swatch" style="background:#0f766e"></i> 75+ Compliant</span>
+                            <span><i class="legend-swatch" style="background:#d97706"></i> 50-74 At Risk</span>
+                            <span><i class="legend-swatch" style="background:#b42318"></i> Below 50 Intervention</span>
+                        </div>
+                    </div>
+                    <button id="refreshBtn" class="secondary-btn">Refresh</button>
+                </div>
+                <div id="messageBox" class="message-box hidden"></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Record ID</th>
+                                <th>Student</th>
+                                <th>Roll Number</th>
+                                <th>Attendance</th>
+                                <th>Internal</th>
+                                <th>Submitted</th>
+                                <th>Total</th>
+                                <th>AHI</th>
+                                <th>Status</th>
+                                <th>Predicted</th>
+                                <th>Priority</th>
+                                <th>Intervention</th>
+                                <th>Reviewed</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody">
+                            <tr>
+                                <td colspan="14" class="empty-state">Loading records...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination-row">
+                    <button id="prevPageBtn" class="secondary-btn" type="button">Previous</button>
+                    <span id="paginationInfo">Page 1</span>
+                    <button id="nextPageBtn" class="secondary-btn" type="button">Next</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
